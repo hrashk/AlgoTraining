@@ -1,8 +1,9 @@
 def partition(lst, pivot, left, right):
-    if len(lst) == 1:
-        return 0
-    elif left >= right:
-        return left
+    while left < right:
+        while lst[left] < pivot:
+            left += 1
+        while lst[right] > pivot:
+            right -= 1
+        lst[left], lst[right] = lst[right], lst[left]
 
-    lst[0], lst[2] = lst[2], lst[0]
-    return 2
+    return left
