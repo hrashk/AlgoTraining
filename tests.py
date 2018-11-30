@@ -14,7 +14,11 @@ def test_basic():
 
 def test_edges():
     assert partition([1], 0, 0, 0) == 0
+    assert partition([1, 2], 4, 0, 0) == 0
+    assert partition([1, 2], 4, 1, 1) == 1
 
+
+def test_exceptions():
     with pytest.raises(IndexError):
         partition([], 0, 0, 1)
     with pytest.raises(IndexError):
