@@ -6,9 +6,9 @@ import sys
 from bisect import bisect_left
 
 def precompute(maxrank):
-    # F[n][i] is the # of decibinary representations of n of length i for i > 0
+    # F[n][i] is the # of decibinary representations of n of length 0..i for i > 0
     F = [[1] * 20] # sentinel
-    S = [1] # S[i] = sum(F[:i+1])
+    S = [1] # S[i] = sum(F[:i+1][-1])
     n = 0 # the number to represent
     while S[-1] < maxrank:
         n += 1
@@ -24,21 +24,23 @@ def precompute(maxrank):
         while pow2 // 2 <= n:
             for d in range(1, 10):
                 next_number = n - d * pow2 // 2
-                if next_number >= 0:
-                    F[n][i] += F[next_number][i-1]
+                if next_number < 0:
+                    break
+                F[n][i] += F[next_number][i - 1]
+            F[n][i] += F[n][i - 1]
             i += 1
             pow2 *= 2
-        S.append(S[-1] + sum(F[n]))
-
-    # F[n][0] is the total # of decibinary representations of n
-    # for n in range(len(F)):
-    #     F[n][0] = sum(F[n][1:])
+        while i < len(F[n]):
+            F[n][i] = F[n][i - 1]
+            i += 1
+        S.append(S[-1] + F[n][-1])
     return F, S
 
-F, S = precompute(10**2) # todo: repelace with 10**16
-from pprint import pprint
-pprint(F)
-pprint(S)
+F, S = precompute(10**5) # todo: repelace with 10**16
+# if __debug__:
+#     print("The biggest number:", len(F), " Last # stats ", F[-1][-1]," S[-1] =", S[-1])
+#     for n, c in enumerate(F):
+#         print(n, '->', c)
 
 def decibinaryNumbers(x):
     n = bisect_left(S, x)
