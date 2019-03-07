@@ -15,9 +15,11 @@ def datagen():
 def solve(s):
     s = [code(c) for c in s]
     freqs = count_freqs(s)
-    i, letter = next_letter(s, freqs, 0)
-    i, letter2 = next_letter(s, freqs, i)
-    return letter, letter2
+    i = 0
+    while True:
+        i, letter = next_letter(s, freqs, i)
+        print(letter, end=' ')
+    return letter
 
 def count_freqs(s):
     freqs = [0] * len(ascii_lowercase)
@@ -26,6 +28,11 @@ def count_freqs(s):
     return [f // 2 for f in freqs] # halve the freqs
 
 def next_letter(s, freqs, i):
+    if i > len(s) - 1:
+        raise StopIteration
+    elif freqs[s[i]] == 0:
+        return i + 1, chr(s[i] + ord('a'))
+    
     prefix_freqs = [0] * len(ascii_lowercase)
     while freqs[s[i]] > 0:
         prefix_freqs[s[i]] += 1
