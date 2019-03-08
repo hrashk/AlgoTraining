@@ -13,36 +13,47 @@ def datagen():
 #     print(datagen())
 
 def solve(s):
-    s = [code(c) for c in s]
-    freqs = count_freqs(s)
+    codes = [code(c) for c in s]
+    char_stats = count_freqs(codes)
+    print(char_stats)
     i = 0
     while True:
-        i, letter = next_letter(s, freqs, i)
-        print(letter, end=' ')
-    return letter
+        i, letters = next_letters(codes, char_stats, i)
+        print(letters, end=' ')
+    return letters
 
-def count_freqs(s):
-    freqs = [0] * len(ascii_lowercase)
-    for c in s:
-        freqs[c] += 1
-    return [f // 2 for f in freqs] # halve the freqs
+def count_freqs(codes):
+    char_stats = []
+    for _ in range(len(ascii_lowercase)):
+        char_stats.append({'freq': 0, 'used': 0, 'skipped': 0})
+    for c in codes:
+        char_stats[c]['freq'] += 1
+    for cs in char_stats:
+        cs['freq'] //= 2
+    return char_stats
 
-def next_letter(s, freqs, i):
-    if i > len(s) - 1:
+def next_letters(codes, char_stats, i):
+    if i > len(codes) - 1:
         raise StopIteration
-    elif freqs[s[i]] == 0:
-        return i + 1, chr(s[i] + ord('a'))
+    elif char_stats[codes[i]]['skipped'] == char_stats[codes[i]]['freq']:
+        return i + 1, chr(codes[i] + ord('a'))
     
     prefix_freqs = [0] * len(ascii_lowercase)
-    while freqs[s[i]] > 0:
-        prefix_freqs[s[i]] += 1
-        freqs[s[i]] -= 1
-        i += 1
+    while i < len(codes):
+        if char_stats[codes[i]]['used'] == char_stats[codes[i]]['freq']:
+            i += 1
+        elif char_stats[codes[i]]['skipped'] < char_stats[codes[i]]['freq']:
+            char_stats[codes[i]]['skipped'] += 1
+            prefix_freqs[codes[i]] += 1
+            i += 1
+        else:
+            break
     min_char = next(c for c, f in enumerate(prefix_freqs) if f != 0)
     # move back
-    while s[i - 1] != min_char:
+    while codes[i - 1] != min_char:
         i -= 1
-        freqs[s[i]] += 1
+        if char_stats[codes[i]]['used'] != char_stats[codes[i]]['freq']:
+            char_stats[codes[i]]['skipped'] -= 1
     return i, chr(min_char + ord('a')) * prefix_freqs[min_char]
 
 def code(c):
