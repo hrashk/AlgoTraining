@@ -15,7 +15,6 @@ def datagen():
 def solve(s):
     codes = [code(c) for c in s]
     char_stats = count_freqs(codes)
-    print(char_stats)
     i = 0
     while True:
         i, letters = next_letters(codes, char_stats, i)
@@ -49,6 +48,7 @@ def next_letters(codes, char_stats, i):
         else:
             break
     min_char = next(c for c, f in enumerate(prefix_freqs) if f != 0)
+    char_stats[min_char]['used'] += prefix_freqs[min_char]
     # move back
     while codes[i - 1] != min_char:
         i -= 1
