@@ -15,9 +15,9 @@ def datagen():
 def solve(s):
     codes = [code(c) for c in s]
     code_stats = count_freqs(codes)
-    for letters in next_letters(codes, code_stats):
-        print(letters, end=' ')
-    return letters
+    # for letters in next_letters(codes, code_stats):
+    #     print(letters, end=' ', flush=True)
+    return ' '.join(next_letters(codes, code_stats))
 
 def count_freqs(codes):
     code_stats = []
@@ -37,6 +37,7 @@ def next_letters(codes, code_stats):
             continue
         elif code_stats[codes[i]]['skipped'] >= code_stats[codes[i]]['freq']:
             yield chr(codes[i] + ord('a'))
+            code_stats[codes[i]]['used'] += 1
             i += 1
             continue
         skipped_freqs = [0] * len(ascii_lowercase)
@@ -52,15 +53,17 @@ def next_letters(codes, code_stats):
         min_code = next(c for c, f in enumerate(skipped_freqs) if f != 0)
         if i < len(codes) and codes[i] < min_code:
             min_code = codes[i]
+            code_stats[min_code]['used'] += 1
             i += 1
+            yield chr(min_code + ord('a'))
         else:
             code_stats[min_code]['used'] += skipped_freqs[min_code]
             code_stats[min_code]['skipped'] -= skipped_freqs[min_code]
-        # move back
-        while codes[i - 1] != min_code:
-            code_stats[codes[i]]['skipped'] -= 1
-            i -= 1
-        yield chr(min_code + ord('a')) * skipped_freqs[min_code]
+            # move back
+            while codes[i - 1] != min_code:
+                i -= 1
+                code_stats[codes[i]]['skipped'] -= 1
+            yield chr(min_code + ord('a')) * skipped_freqs[min_code]
 
 def code(c):
     return ord(c) - ord('a')
