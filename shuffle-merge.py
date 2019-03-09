@@ -68,4 +68,4 @@ def next_letters(codes, code_stats):
 def code(c):
     return ord(c) - ord('a')
 
-print(solve("tjjvdjxdbbhsjvxtsh"))
+print(solve("sqaaawwwqnswan"))
