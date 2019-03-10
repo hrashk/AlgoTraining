@@ -12,7 +12,7 @@ def datagen():
 def solve(s):
     codes = [code(c) for c in s]
     code_stats = count_freqs(codes)
-    return ' '.join(next_letters(codes, code_stats))
+    return ''.join(next_letters(codes, code_stats))
 
 def count_freqs(codes):
     code_stats = []
@@ -54,18 +54,18 @@ def next_letters(codes, code_stats):
             yield chr(min_code + ord('a'))
             continue
         elif i >= len(codes) or codes[i] > min_code:
-            code_stats[min_code]['used'] += skipped_freqs[min_code]
-            code_stats[min_code]['skipped'] -= skipped_freqs[min_code]
+            delta = min(skipped_freqs[min_code],  code_stats[min_code]['freq'] - code_stats[min_code]['used'])
+            code_stats[min_code]['used'] += delta
+            code_stats[min_code]['skipped'] -= delta
             # move back
             while codes[i - 1] != min_code:
                 i -= 1
                 code_stats[codes[i]]['skipped'] -= 1
-            yield chr(min_code + ord('a')) * skipped_freqs[min_code]
+            yield chr(min_code + ord('a')) * delta
             continue
         # codes[i] == min_code, so compare it with the next letter
         found_less = False
         collected_mins = 0
-        signpost = i
         while i < len(codes):
             if code_stats[codes[i]]['used'] >= code_stats[codes[i]]['freq']:
                 i += 1
@@ -93,9 +93,9 @@ def next_letters(codes, code_stats):
 def code(c):
     return ord(c) - ord('a')
 
-print(solve("mmhgbttubbhubg"))
+# print(solve("mmhgbttubbhubg"))
 
-# for _ in range(100):
-#     s = datagen()
-#     s1 = solve(s)
-#     assert len(s1) * 2 == len(s), s1 + ' <<< ' + s
+for _ in range(100):
+    s = datagen()
+    s1 = solve(s)
+    assert len(s1) * 2 == len(s), s1 + ' <<< ' + s
