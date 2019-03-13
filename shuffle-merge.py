@@ -1,13 +1,7 @@
 from random import choice, sample, randint, shuffle
 from string import ascii_lowercase
 from itertools import dropwhile
-
-# s = sample(range(100), k=50)
-def datagen():
-    s = list(choice(ascii_lowercase) for _ in range(randint(3, 10)))
-    rs = s + s
-    shuffle(rs)
-    return ''.join(rs)
+from itertools import combinations
 
 def solve(s):
     codes = [code(c) for c in s]
@@ -95,7 +89,28 @@ def code(c):
 
 # print(solve("mmhgbttubbhubg"))
 
+def datagen():
+    A = ''.join(choice(ascii_lowercase) for _ in range(randint(3, 10)))
+    res = sample(A + A, 2 * len(A))
+    return ''.join(res)
+
+def gather_freqs(s):
+    freqs = {l: 0 for l in ascii_lowercase}
+    for l in s:
+        freqs[l] += 1
+    return freqs
+
+
+def combos(s):
+    freqs = gather_freqs(s)
+    for c in combinations(s, len(s) // 2):
+        c_freqs = gather_freqs(c)
+        if all(freqs[l] == 2 * c_freqs[l] for l in ascii_lowercase):
+            yield c
+
+
 for _ in range(100):
     s = datagen()
     s1 = solve(s)
-    assert len(s1) * 2 == len(s), s1 + ' <<< ' + s
+    ans = min(''.join(c) for c in combos(s))
+    assert s1 == ans, s + ' => ' + ans + ' not ' + s1
