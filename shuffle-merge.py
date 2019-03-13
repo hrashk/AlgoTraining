@@ -87,7 +87,6 @@ def next_letters(codes, code_stats):
 def code(c):
     return ord(c) - ord('a')
 
-# print(solve("mmhgbttubbhubg"))
 
 def datagen():
     A = ''.join(choice(ascii_lowercase) for _ in range(randint(3, 10)))
@@ -108,9 +107,15 @@ def combos(s):
         if all(freqs[l] == 2 * c_freqs[l] for l in ascii_lowercase):
             yield c
 
+def testem():
+    collector = []
+    for _ in range(100):
+        s = datagen()
+        s1 = solve(s)
+        ans = min(''.join(c) for c in combos(s))
+        if s1 != ans:
+            collector.append(s + ' => ' + ans + ' not ' + s1)
+    print(collector)
 
-for _ in range(100):
-    s = datagen()
-    s1 = solve(s)
-    ans = min(''.join(c) for c in combos(s))
-    assert s1 == ans, s + ' => ' + ans + ' not ' + s1
+testem()
+# print(solve("gyujtyjougyoyyyt")) # must be gjouyyyt
