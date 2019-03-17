@@ -64,13 +64,18 @@ def next_letters(codes, code_stats):
         # elif i >= len(codes) or codes[i] > min_code:
         else:
             delta = min(skipped_freqs[min_code],  code_stats[min_code]['freq'] - code_stats[min_code]['used'])
-            code_stats[min_code]['used'] += delta
             yield chr(min_code + ord('a')) * (collected_mins + delta)
             # backtrack
-            while  i >= 0 and (codes[i - 1] != min_code or skipped_freqs[min_code] > delta):
+            while codes[i - 1] != min_code or skipped_freqs[min_code] > delta:
+                assert i > 0
                 i -= 1
+                if code_stats[codes[i]]['used'] >= code_stats[codes[i]]['freq']:
+                    continue
+                assert code_stats[codes[i]]['skipped'] > 0
                 code_stats[codes[i]]['skipped'] -= 1
+                assert skipped_freqs[codes[i]] > 0
                 skipped_freqs[codes[i]] -= 1
+            code_stats[min_code]['used'] += delta
 
 def code(c):
     return ord(c) - ord('a')
@@ -105,5 +110,5 @@ def testem():
             collector.append(s + ' => ' + ans + ' not ' + s1)
     print(collector)
 
-testem()
-# print(solve("vtgaxirwiwtrkkvagx")) # must be llnoyyu
+# testem()
+print(solve("mghyyvvgwjgnghwnvjvm")) # must be llnoyyu
