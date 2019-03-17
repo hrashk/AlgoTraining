@@ -41,48 +41,39 @@ def next_letters(codes, code_stats):
             else:
                 break
         min_code = next(c for c, f in enumerate(skipped_freqs) if f != 0)
+
+        collected_mins = 0
+        if i < len(codes) and codes[i] == min_code: # compare it with the next letter
+            while i < len(codes):
+                if code_stats[codes[i]]['used'] >= code_stats[codes[i]]['freq']:
+                    i += 1
+                elif codes[i] == min_code: # skip it
+                    collected_mins += 1
+                    code_stats[min_code]['used'] += 1
+                    i += 1
+                elif codes[i] < min_code:
+                    break
+                elif code_stats[codes[i]]['skipped'] < code_stats[codes[i]]['freq']:
+                    code_stats[codes[i]]['skipped'] += 1
+                    i += 1
+                else:
+                    break
         if i < len(codes) and codes[i] < min_code:
-            min_code = codes[i]
-            code_stats[min_code]['used'] += 1
-            i += 1
-            yield chr(min_code + ord('a'))
+            yield chr(min_code + ord('a')) * collected_mins
             continue
-        elif i >= len(codes) or codes[i] > min_code:
+        # elif i >= len(codes) or codes[i] > min_code:
+        else:
             delta = min(skipped_freqs[min_code],  code_stats[min_code]['freq'] - code_stats[min_code]['used'])
             code_stats[min_code]['used'] += delta
-            code_stats[min_code]['skipped'] -= delta
-            # move back
-            while codes[i - 1] != min_code:
+            yield chr(min_code + ord('a')) * (collected_mins + delta)
+            # backtrack
+            while collected_mins > 0 or skipped_freqs[min_code] > delta:
                 i -= 1
-                code_stats[codes[i]]['skipped'] -= 1
-            yield chr(min_code + ord('a')) * delta
-            continue
-        # codes[i] == min_code, so compare it with the next letter
-        found_less = False
-        collected_mins = 0
-        while i < len(codes):
-            if code_stats[codes[i]]['used'] >= code_stats[codes[i]]['freq']:
-                i += 1
-            elif codes[i] == min_code: # skip it
-                collected_mins += 1
-                code_stats[min_code]['used'] += 1
-                i += 1
-            elif codes[i] < min_code:
-                found_less = True
-                break
-            elif code_stats[codes[i]]['skipped'] < code_stats[codes[i]]['freq']:
-                code_stats[codes[i]]['skipped'] += 1
-                i += 1
-            else:
-                break
-        if found_less:
-            yield chr(min_code + ord('a')) * collected_mins
-        elif skipped_freqs[min_code] + code_stats[min_code]['used'] <= code_stats[min_code]['freq']:
-            yield chr(min_code + ord('a')) * (collected_mins + skipped_freqs[min_code])
-            code_stats[min_code]['used'] += skipped_freqs[min_code]
-        else:
-            yield chr(min_code + ord('a')) * (collected_mins + code_stats[min_code]['freq'] - code_stats[min_code]['used'])
-            code_stats[min_code]['used'] = code_stats[min_code]['freq']
+                if codes[i] != min_code or collected_mins == 0:
+                    code_stats[codes[i]]['skipped'] -= 1
+                    skipped_freqs[codes[i]] -= 1
+                else:
+                    collected_mins -= 1
 
 def code(c):
     return ord(c) - ord('a')
@@ -109,7 +100,7 @@ def combos(s):
 
 def testem():
     collector = []
-    for _ in range(100):
+    for _ in range(10):
         s = datagen()
         s1 = solve(s)
         ans = min(''.join(c) for c in combos(s))
