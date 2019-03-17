@@ -67,13 +67,10 @@ def next_letters(codes, code_stats):
             code_stats[min_code]['used'] += delta
             yield chr(min_code + ord('a')) * (collected_mins + delta)
             # backtrack
-            while collected_mins > 0 or skipped_freqs[min_code] > delta:
+            while  i >= 0 and (codes[i - 1] != min_code or skipped_freqs[min_code] > delta):
                 i -= 1
-                if codes[i] != min_code or collected_mins == 0:
-                    code_stats[codes[i]]['skipped'] -= 1
-                    skipped_freqs[codes[i]] -= 1
-                else:
-                    collected_mins -= 1
+                code_stats[codes[i]]['skipped'] -= 1
+                skipped_freqs[codes[i]] -= 1
 
 def code(c):
     return ord(c) - ord('a')
@@ -100,7 +97,7 @@ def combos(s):
 
 def testem():
     collector = []
-    for _ in range(10):
+    for _ in range(100):
         s = datagen()
         s1 = solve(s)
         ans = min(''.join(c) for c in combos(s))
@@ -109,4 +106,4 @@ def testem():
     print(collector)
 
 testem()
-# print(solve("gyujtyjougyoyyyt")) # must be gjouyyyt
+# print(solve("vtgaxirwiwtrkkvagx")) # must be llnoyyu
