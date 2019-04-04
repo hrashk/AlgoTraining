@@ -17,8 +17,7 @@ def build_adj_list(roads):
         graph[v2].append(Edge(v1, cost))
     return graph
 
-def delete_leaf(graph, city, parent):
-    dad = parent[city]
+def delete_leaf(graph, city, dad):
     city_idx = next(i for i,v in enumerate(graph[dad]) if v.city == city)
     del graph[dad][city_idx]
     del graph[city][0]
@@ -26,13 +25,28 @@ def delete_leaf(graph, city, parent):
 def delete_road(graph, c1, c2):
     city_idx = next(i for i,v in enumerate(graph[c1]) if v.city == c2)
     del graph[c1][city_idx]
+
     city_idx = next(i for i,v in enumerate(graph[c2]) if v.city == c1)
+    cost = graph[c2][city_idx].cost
     del graph[c2][city_idx]
 
+    return cost
 
-def collapse_city(graph, city, parent):
-    edges = graph[city]
-    return edges[0].city if edges[0].city != parent[city] else edges[1].city
+
+def collapse_city(graph, city, dad):
+    city_edges = graph[city]
+    target_city = city_edges[0].city if city_edges[0].city != dad else city_edges[1].city
+
+    dad_idx = next(i for i,v in enumerate(graph[dad]) if v.city == city)
+
+    target_idx = next(i for i,v in enumerate(graph[target_city]) if v.city == city)
+
+    cost = min(e.cost for e in city_edges)
+    graph[dad][dad_idx] = Edge(target_city, cost)
+    graph[target_city][target_idx] = Edge(dad, cost)
+    graph[city] = []
+
+    return target_city
 
 def collapse_cities_without_machines(graph, start, machines):
     forest = [start]
@@ -48,9 +62,9 @@ def collapse_cities_without_machines(graph, start, machines):
         if not top in machines:
             dad = parent[top]
             if len(edges) == 1:
-                delete_leaf(graph, top, parent)
+                delete_leaf(graph, top, dad)
             elif len(edges) == 2 and not (dad is None or dad in machines):
-                new_city = collapse_city(graph, top, parent)
+                new_city = collapse_city(graph, top, dad)
                 stack[-1] = new_city
                 continue
         else:
@@ -69,16 +83,18 @@ def minTime(roads, machines):
     machines = set(machines)
     graph = build_adj_list(roads)
     edges_to_delete, parent = collapse_cities_without_machines(graph, start, machines)
+
+    cost = 0
     for c1, c2 in edges_to_delete:
-        delete_road(graph, c1, c2)
+        cost += delete_road(graph, c1, c2)
 
     print(parent)
     for c, edges in enumerate(graph):
         print(c, edges)
-    return 0
+    return cost
 
 if __name__ == '__main__':
-    teststr = """
+    teststr1 = """
 5 3
 2 1 8
 1 0 5
@@ -87,6 +103,16 @@ if __name__ == '__main__':
 2
 4
 0
+""".strip().split('\n')
+    teststr = """
+5 3
+1 2 3
+3 1 7
+0 1 4
+4 0 2
+2
+3
+4
 """.strip().split('\n')
 
     nk = teststr[0].split()
