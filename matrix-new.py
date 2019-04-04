@@ -17,8 +17,18 @@ def build_adj_list(roads):
         graph[v2].append(Edge(v1, cost))
     return graph
 
-def delete_city(graph, city, parent):
-    pass
+def delete_leaf(graph, city, parent):
+    dad = parent[city]
+    city_idx = next(i for i,v in enumerate(graph[dad]) if v.city == city)
+    del graph[dad][city_idx]
+    del graph[city][0]
+
+def delete_road(graph, c1, c2):
+    city_idx = next(i for i,v in enumerate(graph[c1]) if v.city == c2)
+    del graph[c1][city_idx]
+    city_idx = next(i for i,v in enumerate(graph[c2]) if v.city == c1)
+    del graph[c2][city_idx]
+
 
 def collapse_city(graph, city, parent):
     edges = graph[city]
@@ -36,9 +46,10 @@ def collapse_cities_without_machines(graph, start, machines):
         unvisited = [e.city for e in edges if e.city not in parent]
 
         if not top in machines:
+            dad = parent[top]
             if len(edges) == 1:
-                delete_city(graph, top, parent)
-            elif len(edges) == 2 and unvisited[0] not in machines:
+                delete_leaf(graph, top, parent)
+            elif len(edges) == 2 and not (dad is None or dad in machines):
                 new_city = collapse_city(graph, top, parent)
                 stack[-1] = new_city
                 continue
@@ -58,9 +69,12 @@ def minTime(roads, machines):
     machines = set(machines)
     graph = build_adj_list(roads)
     edges_to_delete, parent = collapse_cities_without_machines(graph, start, machines)
+    for c1, c2 in edges_to_delete:
+        delete_road(graph, c1, c2)
 
-    print(edges_to_delete)
     print(parent)
+    for c, edges in enumerate(graph):
+        print(c, edges)
     return 0
 
 if __name__ == '__main__':
