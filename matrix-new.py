@@ -65,6 +65,7 @@ def collapse_cities_without_machines(graph, start, machines):
                 delete_leaf(graph, top, dad)
             elif len(edges) == 2 and not (dad is None or dad in machines):
                 new_city = collapse_city(graph, top, dad)
+                parent[new_city] = dad
                 stack[-1] = new_city
                 continue
         else:
@@ -91,10 +92,23 @@ def minTime(roads, machines):
     print(parent)
     for c, edges in enumerate(graph):
         print(c, edges)
+
+    # assert all(len(adj) == 0 for adj in graph)
+    
     return cost
 
+from random import randrange
+
+def generate_random_tree_with_1_machine(size):
+    roads = []
+    for i in range(1, size):
+        roads.append([i, randrange(i), randrange(1, 11)])
+    machines = [randrange(size)]
+
+    return roads, machines
+
 if __name__ == '__main__':
-    teststr1 = """
+    teststr = """
 5 3
 2 1 8
 1 0 5
@@ -104,7 +118,7 @@ if __name__ == '__main__':
 4
 0
 """.strip().split('\n')
-    teststr = """
+    teststr1 = """
 5 3
 1 2 3
 3 1 7
@@ -133,3 +147,10 @@ if __name__ == '__main__':
 
     result = minTime(roads, machines)
     print(result)
+
+    # for _ in range(100):
+    #     roads, machines = generate_random_tree_with_1_machine(30)
+    #     for r in roads:
+    #         print(r)
+    #     result = minTime(roads, machines)
+    #     print(result)
