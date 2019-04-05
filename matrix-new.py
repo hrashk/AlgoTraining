@@ -196,6 +196,10 @@ if __name__ == '__main__':
     # result = minTime(roads, machines)
     # print(result)
 
+    roads, machines = [(0, 1, 7)], [0, 1]
+    result = minTime(roads, machines)
+    assert result == 7
+
     # single machine
     for _ in range(30):
         roads, machines = generate_random_tree_with_1_machine(100)
@@ -214,6 +218,15 @@ if __name__ == '__main__':
         
         result = minTime(roads, machines)
         assert result == 7
+
+    for _ in range(30):
+        roads, machines = generate_random_tree_with_1_machine(100)
+        machines = list(range(len(roads)))
+        # for r in roads:
+        #     print(r)
+        result = minTime(roads, machines)
+        total = sum(r[2] for r in roads)
+        assert result == total, str(result) + " vs " + str(total)
 
     # two disconnected machines
     for _ in range(30):
