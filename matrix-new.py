@@ -1,12 +1,7 @@
 #!/bin/python3
 
-import math
-import os
-import random
-import re
-import sys
-
 from collections import namedtuple
+from heapq import heapify, heappush, heappop
 
 Edge = namedtuple('Edge', ['city', 'cost'])
 
@@ -52,7 +47,7 @@ def collapse_cities_without_machines(graph, start, machines):
     forest = [start]
     stack = [start]
     parent = {start: None}
-    edges_to_delete = []
+    roads_to_delete = []
 
     while len(stack) > 0:
         top = stack[-1]
@@ -69,7 +64,7 @@ def collapse_cities_without_machines(graph, start, machines):
                 stack[-1] = new_city
                 continue
         else:
-            edges_to_delete.extend((top, city) for city in unvisited if city in machines)                
+            roads_to_delete.extend((top, city) for city in unvisited if city in machines)                
 
         if len(unvisited) == 0:
             stack.pop()
@@ -77,21 +72,74 @@ def collapse_cities_without_machines(graph, start, machines):
             parent.update({city: top for city in unvisited})
             stack.extend(unvisited)
 
-    return edges_to_delete, parent
+    return roads_to_delete, parent
+
+def build_roadsPQ(graph):
+    roadsPQ = [(cost, c1, c2) for c1, edges in enumerate(graph) for c2, cost in edges if c1 < c2]
+    heapify(roadsPQ)
+    return roadsPQ
+
+def optimize_subgraph(graph, city, machines):
+    "Returns deleted and added edges"
+    deleted = []
+    added = []
+
+    edges = graph[city]
+    if len(edges) == 0 or len(edges) > 2 or city in machines:
+        return deleted, added
+
+    if len(edges) == 1:
+        dad = edges[0].city
+        c1, c2 = sorted([city, dad])
+        deleted.append((edges[0].cost, c1, c2))
+        
+        delete_leaf(graph, city, dad)
+
+        city, edges = dad, graph[dad]
+    
+    if len(edges) == 2 and not (edges[0].city in machines or edges[1].city in machines):
+        new_city = collapse_city(graph, city, edges[0].city)
+
+        for e in edges:
+            c1, c2 = sorted([city, e.city])
+            deleted.append((e.cost, c1, c2))
+        
+        c1, c2 = sorted([city, new_city])
+        cost = min(e.cost for e in edges)
+        added.append((cost, c1, c2))
+
+    return deleted, added
 
 def minTime(roads, machines):
     start = machines[0]
     machines = set(machines)
     graph = build_adj_list(roads)
-    edges_to_delete, parent = collapse_cities_without_machines(graph, start, machines)
+    roads_to_delete, parent = collapse_cities_without_machines(graph, start, machines)
 
     cost = 0
-    for c1, c2 in edges_to_delete:
+    for c1, c2 in roads_to_delete:
         cost += delete_road(graph, c1, c2)
 
-    print(parent)
-    for c, edges in enumerate(graph):
-        print(c, edges)
+    roadsPQ = build_roadsPQ(graph)
+    deleted_roads = set()
+
+    while len(roadsPQ) > 0:
+        road = heappop(roadsPQ)
+        if road in deleted_roads:
+            continue
+        deleted_roads.add(road)
+        cost += road[0]
+        c1, c2 = road[1:]
+        delete_road(graph, c1, c2)
+        for c in road[1:]:
+            deleted, added = optimize_subgraph(graph, c, machines)
+            deleted_roads.update(deleted)
+            for e in added:
+                heappush(roadsPQ, e)
+
+    # print(parent)
+    # for c, edges in enumerate(graph):
+    #     print(c, edges)
 
     # assert all(len(adj) == 0 for adj in graph)
     
@@ -108,7 +156,7 @@ def generate_random_tree_with_1_machine(size):
     return roads, machines
 
 if __name__ == '__main__':
-    teststr = """
+    teststr1 = """
 5 3
 2 1 8
 1 0 5
@@ -118,7 +166,7 @@ if __name__ == '__main__':
 4
 0
 """.strip().split('\n')
-    teststr1 = """
+    teststr = """
 5 3
 1 2 3
 3 1 7
