@@ -193,12 +193,35 @@ if __name__ == '__main__':
     for i in range(n, n + k):
         machines.append(int(teststr[i]))
 
-    result = minTime(roads, machines)
-    print(result)
+    # result = minTime(roads, machines)
+    # print(result)
 
-    # for _ in range(100):
-    #     roads, machines = generate_random_tree_with_1_machine(30)
-    #     for r in roads:
-    #         print(r)
-    #     result = minTime(roads, machines)
-    #     print(result)
+    # single machine
+    for _ in range(30):
+        roads, machines = generate_random_tree_with_1_machine(100)
+        # for r in roads:
+        #     print(r)
+        result = minTime(roads, machines)
+        assert result == 0
+
+    # two connected machines
+    for _ in range(30):
+        roads, machines = generate_random_tree_with_1_machine(100)
+        machine2_id = len(roads) + 1
+
+        roads.append((machine2_id, machines[0], 7))
+        machines.append(machine2_id)
+        
+        result = minTime(roads, machines)
+        assert result == 7
+
+    # two disconnected machines
+    for _ in range(30):
+        roads, machines = generate_random_tree_with_1_machine(100)
+        machine2_id = len(roads) + 1
+
+        roads.append((machine2_id,  (1 + machines[0]) % machine2_id, 20))
+        machines.append(machine2_id)
+
+        result = minTime(roads, machines)
+        assert result < 20
