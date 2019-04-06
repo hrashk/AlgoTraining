@@ -1,148 +1,32 @@
 #!/bin/python3
 
-from collections import namedtuple
-from heapq import heapify, heappush, heappop
+def find(city, parent):
+    while parent[city] is not None:
+        city = parent[city]
+    return city
 
-Edge = namedtuple('Edge', ['city', 'cost'])
+def union(city1, city2, parent, machines):
+    head1 = find(city1, parent)
+    head2 = find(city2, parent)
 
-def build_adj_list(roads):
-    graph = [[] for _ in range(len(roads) + 1)]
-    for v1, v2, cost in roads:
-        graph[v1].append(Edge(v2, cost))
-        graph[v2].append(Edge(v1, cost))
-    return graph
+    if head1 in machines and head2 in machines:
+        return False
+    elif head1 in machines:
+        parent[head2] = head1
+    else:
+        parent[head1] = head2
 
-def delete_leaf(graph, city, dad):
-    city_idx = next(i for i,v in enumerate(graph[dad]) if v.city == city)
-    del graph[dad][city_idx]
-    del graph[city][0]
-
-def delete_road(graph, c1, c2):
-    city_idx = next(i for i,v in enumerate(graph[c1]) if v.city == c2)
-    del graph[c1][city_idx]
-
-    city_idx = next(i for i,v in enumerate(graph[c2]) if v.city == c1)
-    cost = graph[c2][city_idx].cost
-    del graph[c2][city_idx]
-
-    return cost
-
-
-def collapse_city(graph, city, dad):
-    city_edges = graph[city]
-    target_city = city_edges[0].city if city_edges[0].city != dad else city_edges[1].city
-
-    dad_idx = next(i for i,v in enumerate(graph[dad]) if v.city == city)
-
-    target_idx = next(i for i,v in enumerate(graph[target_city]) if v.city == city)
-
-    cost = min(e.cost for e in city_edges)
-    graph[dad][dad_idx] = Edge(target_city, cost)
-    graph[target_city][target_idx] = Edge(dad, cost)
-    graph[city] = []
-
-    return target_city
-
-def collapse_cities_without_machines(graph, start, machines):
-    forest = [start]
-    stack = [start]
-    parent = {start: None}
-    roads_to_delete = []
-
-    while len(stack) > 0:
-        top = stack[-1]
-        edges = graph[top]
-        unvisited = [e.city for e in edges if e.city not in parent]
-
-        if not top in machines:
-            dad = parent[top]
-            if len(edges) == 1:
-                delete_leaf(graph, top, dad)
-            elif len(edges) == 2 and not (dad is None or dad in machines):
-                new_city = collapse_city(graph, top, dad)
-                parent[new_city] = dad
-                stack[-1] = new_city
-                continue
-        else:
-            roads_to_delete.extend((top, city) for city in unvisited if city in machines)                
-
-        if len(unvisited) == 0:
-            stack.pop()
-        else:
-            parent.update({city: top for city in unvisited})
-            stack.extend(unvisited)
-
-    return roads_to_delete, parent
-
-def build_roadsPQ(graph):
-    roadsPQ = [(cost, c1, c2) for c1, edges in enumerate(graph) for c2, cost in edges if c1 < c2]
-    heapify(roadsPQ)
-    return roadsPQ
-
-def optimize_subgraph(graph, city, machines):
-    "Returns deleted and added edges"
-    deleted = []
-    added = []
-
-    edges = graph[city]
-    if len(edges) == 0 or len(edges) > 2 or city in machines:
-        return deleted, added
-
-    if len(edges) == 1:
-        dad = edges[0].city
-        c1, c2 = sorted([city, dad])
-        deleted.append((edges[0].cost, c1, c2))
-        
-        delete_leaf(graph, city, dad)
-
-        city, edges = dad, graph[dad]
-    
-    if len(edges) == 2 and not (edges[0].city in machines or edges[1].city in machines):
-        new_city = collapse_city(graph, city, edges[0].city)
-
-        for e in edges:
-            c1, c2 = sorted([city, e.city])
-            deleted.append((e.cost, c1, c2))
-        
-        c1, c2 = sorted([city, new_city])
-        cost = min(e.cost for e in edges)
-        added.append((cost, c1, c2))
-
-    return deleted, added
+    return True
 
 def minTime(roads, machines):
-    start = machines[0]
     machines = set(machines)
-    graph = build_adj_list(roads)
-    roads_to_delete, parent = collapse_cities_without_machines(graph, start, machines)
-
+    parent = {i: None for i in range(len(roads) + 1)}
     cost = 0
-    for c1, c2 in roads_to_delete:
-        cost += delete_road(graph, c1, c2)
 
-    roadsPQ = build_roadsPQ(graph)
-    deleted_roads = set()
-
-    while len(roadsPQ) > 0:
-        road = heappop(roadsPQ)
-        if road in deleted_roads:
-            continue
-        deleted_roads.add(road)
-        cost += road[0]
-        c1, c2 = road[1:]
-        delete_road(graph, c1, c2)
-        for c in road[1:]:
-            deleted, added = optimize_subgraph(graph, c, machines)
-            deleted_roads.update(deleted)
-            for e in added:
-                heappush(roadsPQ, e)
-
-    # print(parent)
-    # for c, edges in enumerate(graph):
-    #     print(c, edges)
-
-    # assert all(len(adj) == 0 for adj in graph)
-    
+    for city1, city2, time in sorted(roads, key=lambda r: r[2], reverse=True):
+        if not union(city1, city2, parent, machines):
+            cost += time
+    assert machines == set(c for c, p in parent.items() if p is None), (parent, roads, machines)
     return cost
 
 from random import randrange
@@ -217,7 +101,7 @@ if __name__ == '__main__':
         machines.append(machine2_id)
         
         result = minTime(roads, machines)
-        assert result == 7
+        assert result == 7, result
 
     for _ in range(30):
         roads, machines = generate_random_tree_with_1_machine(100)
@@ -242,4 +126,4 @@ if __name__ == '__main__':
         machines.append(machine2_id)
 
         result = minTime(roads, machines)
-        assert result < 20
+        assert 0 < result < 20
