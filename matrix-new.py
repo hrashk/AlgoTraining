@@ -221,11 +221,16 @@ if __name__ == '__main__':
 
     for _ in range(30):
         roads, machines = generate_random_tree_with_1_machine(100)
-        machines = list(range(len(roads)))
-        # for r in roads:
-        #     print(r)
+        machines = list(range(len(roads) + 1))
         result = minTime(roads, machines)
         total = sum(r[2] for r in roads)
+        assert result == total, str(result) + " vs " + str(total)
+
+    for _ in range(30):
+        roads, machines = generate_random_tree_with_1_machine(100)
+        machines = list(range(len(roads)))
+        result = minTime(roads, machines)
+        total = sum(r[2] for r in roads) - roads[-1][2]
         assert result == total, str(result) + " vs " + str(total)
 
     # two disconnected machines
