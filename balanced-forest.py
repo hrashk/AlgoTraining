@@ -33,15 +33,23 @@ def dfs_augment_weight(graph, c, start):
 
 def dfs_cut(graph, weights, parent, total):
     def dfs_up(v):
-        return False
-    
-    def dfs_down(v):
-        ref_weight = total - weights[v]
+        ref_weight = weights[v]
+
         visited = set((v,))
-        stack = [v]
+        stack = []
+        dad = v
+
+        while parent[dad] != dad:
+            dad = parent[dad]
+            if weights[dad] - ref_weight in (ref_weight, total - 2 * ref_weight):
+                print("dfs_up dad:", dad)
+                return True
+            stack.append(dad)
+            visited.add(dad)
+        
         while len(stack) > 0:
             top = stack[-1]
-            unvisited = [u for u in graph[top] if u not in visited]
+            unvisited = [u for u in graph[top] if u not in visited and weights[u] >= total - 2 * ref_weight]
 
             if len(unvisited) == 0:
                 stack.pop()
@@ -50,7 +58,28 @@ def dfs_cut(graph, weights, parent, total):
                 visited.update(unvisited)
                 
                 for u in unvisited:
-                    if weights[u] == ref_weight or weights[v] - weights[u] == ref_weight:
+                    if weights[u] in (ref_weight, total - 2 * ref_weight):
+                        print("dfs_up u:", u)
+                        return True
+        return False
+    
+    def dfs_down(v):
+        ref_weight = total - weights[v]
+        visited = set((v,))
+        stack = [v]
+        while len(stack) > 0:
+            top = stack[-1]
+            unvisited = [u for u in graph[top] if u not in visited and weights[u] >= total - 2 * ref_weight]
+
+            if len(unvisited) == 0:
+                stack.pop()
+            else:
+                stack.extend(unvisited)
+                visited.update(unvisited)
+                
+                for u in unvisited:
+                    if weights[u] in (ref_weight, total - 2 * ref_weight):
+                        print("dfs_down u:", u)
                         return True
         return False
 
@@ -63,11 +92,12 @@ def dfs_cut(graph, weights, parent, total):
         if 3 * (total - weights[v]) > total and 2 * (total - weights[v]) < total:
             candidates_down.append(v)
 
+    print("weights:", weights)
     print("candidates_up:", candidates_up)
     print("candidates_down:", candidates_down)
 
-    min_up = min((total - 2 * weights[v] for v in candidates_up if dfs_up(v)), default=-1)
-    min_down = min((total - 2 * weights[v] for v in candidates_down if dfs_down(v)), default=-1)
+    min_up = min((3 * weights[v] - total for v in candidates_up if dfs_up(v)), default=-1)
+    min_down = min((3 * weights[v] - total for v in candidates_down if dfs_down(v)), default=-1)
     
     if min_up == -1:
         return min_down
@@ -79,7 +109,6 @@ def dfs_cut(graph, weights, parent, total):
 # Complete the balancedForest function below.
 def balancedForest(c, edges):
     graph = build_adj_list(edges)
-    print(graph)
     weights, parent = dfs_augment_weight(graph, c, edges[0][0] - 1)
     total = sum(c)
     res = dfs_cut(graph, weights, parent, total)
