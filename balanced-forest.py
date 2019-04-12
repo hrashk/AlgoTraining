@@ -82,7 +82,7 @@ def dfs_cut(graph, weights, parent, total):
                 
                 for u in unvisited:
                     if weights[u] in (ref_weight, total - 2 * ref_weight):
-                        # print("dfs_down u:", u)
+                        # print("dfs_down u:", u, weights[u])
                         return True
         return False
 
@@ -95,13 +95,13 @@ def dfs_cut(graph, weights, parent, total):
         if 3 * (total - weights[v]) >= total and 2 * (total - weights[v]) <= total:
             candidates_down.append(v)
 
-    # print("weights:", weights)
     # print("candidates_up:", candidates_up)
     # print("candidates_down:", candidates_down)
 
     min_up = min((3 * weights[v] - total for v in candidates_up if dfs_up(v)), default=-1)
-    min_down = min((3 * weights[v] - total for v in candidates_down if dfs_down(v)), default=-1)
-    
+    min_down = min((3 * (total - weights[v]) - total for v in candidates_down if dfs_down(v)), default=-1)
+    # print(min_up, min_down)
+
     if min_up == -1:
         return min_down
     elif min_down == -1:
@@ -115,6 +115,9 @@ def balancedForest(c, edges):
         return -1
     graph = build_adj_list(edges)
     weights, parent = dfs_augment_weight(graph, c, edges[0][0] - 1)
+    # print(graph)
+    # print(weights)
+    # print(parent)
     total = sum(c)
     res = dfs_cut(graph, weights, parent, total)
     return res
@@ -183,6 +186,31 @@ def brute_force(c, edges):
     
     return min(found, default=-1)
 
+def unit_test():
+    c = [2, 2, 3, 1, 1, 1, 1, 3, 2, 2]
+
+    edges = [(1+i, 1+i + 1) for i in range(len(c)-1)]
+    # random.randrange
+
+    result = balancedForest(c, edges)
+    bf = brute_force(c, edges)
+    assert result == 3 == bf, (result, bf)
+
+    c = [4, 4, 4]
+
+    edges = [(1,2), (1,3)]
+    # random.randrange
+
+    result = balancedForest(c, edges)
+    bf = brute_force(c, edges)
+    assert result == 0 == bf, (result, bf)
+
+    for _ in range(100):
+        c, edges = gen_tree()
+        result = balancedForest(c, edges)
+        bf = brute_force(c, edges)
+        assert result == bf, (result, bf, c, edges)
+
 if __name__ == '__main__':
     # q = int(input())
 
@@ -197,29 +225,8 @@ if __name__ == '__main__':
     #         edges.append(list(map(int, input().rstrip().split())))
 
     #     result = balancedForest(c, edges)
+    #     bf = brute_force(c, edges)
+    #     print(result, 'vs', bf)
+    #     # assert result == bf, (result, bf, c, edges)
 
-    #     print(result)
-
-        c = [2, 2, 3, 1, 1, 1, 1, 3, 2, 2]
-
-        edges = [(1+i, 1+i + 1) for i in range(len(c)-1)]
-        # random.randrange
-
-        result = balancedForest(c, edges)
-        bf = brute_force(c, edges)
-        assert result == 3 == bf, (result, bf)
-
-        c = [4, 4, 4]
-
-        edges = [(1,2), (1,3)]
-        # random.randrange
-
-        result = balancedForest(c, edges)
-        bf = brute_force(c, edges)
-        assert result == 0 == bf, (result, bf)
-
-        for _ in range(100):
-            c, edges = gen_tree()
-            result = balancedForest(c, edges)
-            bf = brute_force(c, edges)
-            assert result == bf, (result, bf, c, edges)
+    unit_test()
