@@ -68,7 +68,7 @@ def dfs_cut(graph, weights, parent, total):
     
     def dfs_down(v):
         ref_weight = total - weights[v]
-        visited = set((v,))
+        visited = set((v,parent[v]))
         stack = [v]
         while len(stack) > 0:
             top = stack[-1]
@@ -101,6 +101,7 @@ def dfs_cut(graph, weights, parent, total):
 
     # print("candidates_up:", candidates_up)
     # print("candidates_down:", candidates_down)
+    # print("candidates_eq:", candidates_eq)
     eq = (weights[v] for v in candidates_eq)
     up = (3 * weights[v] - total for v in candidates_up if dfs_up(v))
     down = (3 * (total - weights[v]) - total for v in candidates_down if dfs_down(v))
