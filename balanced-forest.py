@@ -94,9 +94,9 @@ def dfs_cut(graph, weights, parent, total):
         if 2 * weights[v] == total:
             candidates_eq.append(v)
         else:
-            if 3 * weights[v] > total and 2 * weights[v] < total:
+            if 3 * weights[v] >= total and 2 * weights[v] < total:
                 candidates_up.append(v)
-            if 3 * (total - weights[v]) > total and 2 * (total - weights[v]) < total:
+            if 3 * (total - weights[v]) >= total and 2 * (total - weights[v]) < total:
                 candidates_down.append(v)
 
     # print("candidates_up:", candidates_up)
@@ -174,11 +174,11 @@ def brute_force(c, edges):
 
         w1, w2, w3 = count_weights(graph, c)
         
-        if w1 == w2 and 3 * w1 - total > 0:
+        if w1 == w2 and 3 * w1 - total >= 0:
             found.append( 3 * w1 - total)
-        if w1 == w3 and 3 * w1 - total > 0:
+        if w1 == w3 and 3 * w1 - total >= 0:
             found.append(3 * w1 - total)
-        if w3 == w2 and 3 * w2 - total > 0:
+        if w3 == w2 and 3 * w2 - total >= 0:
             found.append(3 * w2 - total)
         
         add_edge(graph, e1)
@@ -206,14 +206,14 @@ def unit_test():
     bf = brute_force(c, edges)
     assert result == 3 == bf, (result, bf)
 
-    # c = [4, 4, 4]
+    c = [4, 4, 4]
 
-    # edges = [(1,2), (1,3)]
-    # # random.randrange
+    edges = [(1,2), (1,3)]
+    # random.randrange
 
-    # result = balancedForest(c, edges)
-    # bf = brute_force(c, edges)
-    # assert result == 0 == bf, (result, bf)
+    result = balancedForest(c, edges)
+    bf = brute_force(c, edges)
+    assert result == 0 == bf, (result, bf)
 
     for _ in range(100):
         c, edges = gen_tree()
