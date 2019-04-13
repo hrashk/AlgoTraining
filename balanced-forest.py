@@ -6,7 +6,7 @@ import random
 import re
 import sys
 
-from itertools import combinations
+from itertools import combinations, chain
 from collections import deque
 
 def build_adj_list(edges):
@@ -88,26 +88,25 @@ def dfs_cut(graph, weights, parent, total):
 
     candidates_up = []
     candidates_down = []
+    candidates_eq = []
 
     for v, dad in parent.items():
-        if 3 * weights[v] > total and 2 * weights[v] <= total:
-            candidates_up.append(v)
-        if 3 * (total - weights[v]) > total and 2 * (total - weights[v]) <= total:
-            candidates_down.append(v)
+        if 2 * weights[v] == total:
+            candidates_eq.append(v)
+        else:
+            if 3 * weights[v] > total and 2 * weights[v] < total:
+                candidates_up.append(v)
+            if 3 * (total - weights[v]) > total and 2 * (total - weights[v]) < total:
+                candidates_down.append(v)
 
     # print("candidates_up:", candidates_up)
     # print("candidates_down:", candidates_down)
-
-    min_up = min((3 * weights[v] - total for v in candidates_up if dfs_up(v)), default=-1)
-    min_down = min((3 * (total - weights[v]) - total for v in candidates_down if dfs_down(v)), default=-1)
+    eq = (weights[v] for v in candidates_eq)
+    up = (3 * weights[v] - total for v in candidates_up if dfs_up(v))
+    down = (3 * (total - weights[v]) - total for v in candidates_down if dfs_down(v))
     # print(min_up, min_down)
 
-    if min_up == -1:
-        return min_down
-    elif min_down == -1:
-        return min_up
-    else:
-        return min(min_up, min_down)
+    return min(chain(up, down, eq), default=-1)
 
 # Complete the balancedForest function below.
 def balancedForest(c, edges):
@@ -174,15 +173,25 @@ def brute_force(c, edges):
 
         w1, w2, w3 = count_weights(graph, c)
         
-        if w1 == w2 and 3 * w1 - total >= 0:
+        if w1 == w2 and 3 * w1 - total > 0:
             found.append( 3 * w1 - total)
-        if w1 == w3 and 3 * w1 - total >= 0:
+        if w1 == w3 and 3 * w1 - total > 0:
             found.append(3 * w1 - total)
-        if w3 == w2 and 3 * w2 - total >= 0:
+        if w3 == w2 and 3 * w2 - total > 0:
             found.append(3 * w2 - total)
         
         add_edge(graph, e1)
         add_edge(graph, e2)
+    
+    for e in edges:
+        delete_edge(graph, e)
+
+        w1, w2 = count_weights(graph, c)
+        
+        if w1 == w2:
+            found.append(w1)
+        
+        add_edge(graph, e)
     
     return min(found, default=-1)
 
@@ -212,21 +221,20 @@ def unit_test():
         assert result == bf, (result, bf, c, edges)
 
 if __name__ == '__main__':
-    q = int(input())
+    # q = int(input())
 
-    for q_itr in range(q):
-        n = int(input())
+    # for q_itr in range(q):
+    #     n = int(input())
 
-        c = list(map(int, input().rstrip().split()))
+    #     c = list(map(int, input().rstrip().split()))
 
-        edges = []
+    #     edges = []
 
-        for _ in range(n - 1):
-            edges.append(list(map(int, input().rstrip().split())))
+    #     for _ in range(n - 1):
+    #         edges.append(list(map(int, input().rstrip().split())))
 
-        result = balancedForest(c, edges)
-        bf = brute_force(c, edges)
-        print(result, 'vs', bf)
-        # assert result == bf, (result, bf, c, edges)
+    #     result = balancedForest(c, edges)
+    #     bf = brute_force(c, edges)
+    #     print(result, 'vs', bf)
 
-    # unit_test()
+    unit_test()
