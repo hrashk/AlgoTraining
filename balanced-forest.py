@@ -90,9 +90,9 @@ def dfs_cut(graph, weights, parent, total):
     candidates_down = []
 
     for v, dad in parent.items():
-        if 3 * weights[v] >= total and 2 * weights[v] <= total:
+        if 3 * weights[v] > total and 2 * weights[v] <= total:
             candidates_up.append(v)
-        if 3 * (total - weights[v]) >= total and 2 * (total - weights[v]) <= total:
+        if 3 * (total - weights[v]) > total and 2 * (total - weights[v]) <= total:
             candidates_down.append(v)
 
     # print("candidates_up:", candidates_up)
@@ -196,14 +196,14 @@ def unit_test():
     bf = brute_force(c, edges)
     assert result == 3 == bf, (result, bf)
 
-    c = [4, 4, 4]
+    # c = [4, 4, 4]
 
-    edges = [(1,2), (1,3)]
-    # random.randrange
+    # edges = [(1,2), (1,3)]
+    # # random.randrange
 
-    result = balancedForest(c, edges)
-    bf = brute_force(c, edges)
-    assert result == 0 == bf, (result, bf)
+    # result = balancedForest(c, edges)
+    # bf = brute_force(c, edges)
+    # assert result == 0 == bf, (result, bf)
 
     for _ in range(100):
         c, edges = gen_tree()
@@ -212,21 +212,21 @@ def unit_test():
         assert result == bf, (result, bf, c, edges)
 
 if __name__ == '__main__':
-    # q = int(input())
+    q = int(input())
 
-    # for q_itr in range(q):
-    #     n = int(input())
+    for q_itr in range(q):
+        n = int(input())
 
-    #     c = list(map(int, input().rstrip().split()))
+        c = list(map(int, input().rstrip().split()))
 
-    #     edges = []
+        edges = []
 
-    #     for _ in range(n - 1):
-    #         edges.append(list(map(int, input().rstrip().split())))
+        for _ in range(n - 1):
+            edges.append(list(map(int, input().rstrip().split())))
 
-    #     result = balancedForest(c, edges)
-    #     bf = brute_force(c, edges)
-    #     print(result, 'vs', bf)
-    #     # assert result == bf, (result, bf, c, edges)
+        result = balancedForest(c, edges)
+        bf = brute_force(c, edges)
+        print(result, 'vs', bf)
+        # assert result == bf, (result, bf, c, edges)
 
-    unit_test()
+    # unit_test()
